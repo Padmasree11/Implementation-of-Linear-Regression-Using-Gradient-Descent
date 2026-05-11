@@ -16,42 +16,83 @@ To write a program to predict the profit of a city using the linear regression m
 ## Program:
 ```
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
-X = np.array([1, 2, 3, 4, 5], dtype=float)
-y = np.array([2, 4, 5, 4, 5], dtype=float)
+# Load dataset
+df = pd.read_csv(r"C:\Users\acer\Downloads\50_Startups.csv")
 
-m = 0 
-b = 0
+# Let's assume 'R&D Spend' predicts 'Profit'
+X = df['R&D Spend'].values
+y = df['Profit'].values
 
-learning_rate = 0.01
-epochs = 1000
-n = len(X)
+# Normalize data (important for gradient descent)
+X = (X - X.mean()) / X.std()
 
-for i in range(epochs):
-    y_pred = m * X + b
-    
-    dm = (-2/n) * np.sum(X * (y - y_pred))
-    db = (-2/n) * np.sum(y - y_pred)
-    
-    m = m - learning_rate * dm
-    b = b - learning_rate * db
+# Add bias term (x0 = 1)
+m = len(X)
+X = np.c_[np.ones(m), X]
 
-print("Slope (m):", m)
-print("Intercept (b):", b)
+# Initialize parameters
+theta = np.zeros(2)
 
-y_pred = m * X + b
+# Hyperparameters
+alpha = 0.01   # learning rate
+iterations = 1000
 
-plt.scatter(X, y, color='blue', label='Actual Data')
-plt.plot(X, y_pred, color='red', label='Regression Line')
-plt.xlabel("X")
-plt.ylabel("y")
-plt.legend()
+# Cost function
+def compute_cost(X, y, theta):
+    m = len(y)
+    predictions = X.dot(theta)
+    return (1/(2*m)) * np.sum((predictions - y) ** 2)
+
+# Gradient Descent
+def gradient_descent(X, y, theta, alpha, iterations):
+    m = len(y)
+    cost_history = []
+
+    for i in range(iterations):
+        predictions = X.dot(theta)
+        errors = predictions - y
+
+        gradients = (1/m) * X.T.dot(errors)
+        theta = theta - alpha * gradients
+
+        cost = compute_cost(X, y, theta)
+        cost_history.append(cost)
+
+    return theta, cost_history
+
+# Train model
+theta, cost_history = gradient_descent(X, y, theta, alpha, iterations)
+
+print("Final Parameters (theta):", theta)
+
+# Plot cost function
+plt.plot(cost_history)
+plt.xlabel("Iterations")
+plt.ylabel("Cost")
+plt.title("Cost Reduction over Iterations")
+plt.show()
+
+# Predictions
+predictions = X.dot(theta)
+
+# Plot regression line
+plt.scatter(X[:,1], y, color='blue')
+plt.plot(X[:,1], predictions, color='red')
+plt.xlabel("R&D Spend (Normalized)")
+plt.ylabel("Profit")
+plt.title("Linear Regression using Gradient Descent")
 plt.show()
 ```
 
 ## Output:
-<img width="812" height="619" alt="Screenshot 2026-04-29 130331" src="https://github.com/user-attachments/assets/18a73817-5430-4d5d-8212-d0c22350cb86" />
+<img width="1020" height="733" alt="Screenshot 2026-05-11 154428" src="https://github.com/user-attachments/assets/7eec5636-a06d-4216-98b7-154455f58d02" />
+
+<img width="986" height="684" alt="Screenshot 2026-05-11 154505" src="https://github.com/user-attachments/assets/b395c448-c69e-4ad9-81ae-7827cc307d23" />
+
+
 
 
 ## Result:
